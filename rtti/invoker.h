@@ -6,29 +6,39 @@ struct FunctionArgument
     std::string m_data;
 };
 
-template <typename FunctionType, typename... Arguments> struct Invoker;
-
-template <typename FunctionType>
-struct Invoker <FunctionType>
+struct InvokeException
 {
-    template <typename... InvokeArguments>
-    static void Invoke(const FunctionType& function, const std::vector<FunctionArgument>& functionArgument, size_t currentArgumentIndex, InvokeArguments... arguments)
+    std::string m_message;
+
+    InvokeException(const std::string& message) :
+        m_message(message)
     {
-        function(arguments...);
     }
 };
 
-template <typename FunctionType, typename Type, typename... Arguments>
-struct Invoker <FunctionType, Type, Arguments...>
+template <typename FunctionType, typename ReturnType, typename... ArgumentTypes> struct Invoker;
+
+template <typename FunctionType, typename ReturnType>
+struct Invoker <FunctionType, ReturnType>
 {
     template <typename... InvokeArguments>
-    static void Invoke(const FunctionType& function, const std::vector<FunctionArgument>& functionArguments, size_t currentArgumentIndex, InvokeArguments... arguments)
+    static ReturnType Invoke(const FunctionType& function, const std::vector<FunctionArgument>& functionArgument, size_t currentArgumentIndex, InvokeArguments... arguments)
+    {
+        return function(arguments...);
+    }
+};
+
+template <typename FunctionType, typename ReturnType, typename Type, typename... ArgumentTypes>
+struct Invoker <FunctionType, ReturnType, Type, ArgumentTypes...>
+{
+    template <typename... InvokeArguments>
+    static ReturnType Invoke(const FunctionType& function, const std::vector<FunctionArgument>& functionArguments, size_t currentArgumentIndex, InvokeArguments... arguments)
     {
         assert(currentArgumentIndex < functionArguments.size());
         if (currentArgumentIndex >= functionArguments.size())
-            return;
+            throw InvokeException("Too few parameters");
 
         const auto currentArgument = Variable<Type>::Parse(functionArguments[currentArgumentIndex++]);
-        Invoker<FunctionType, Arguments...>::Invoke(function, functionArguments, currentArgumentIndex, currentArgument, arguments...);
+        return Invoker<FunctionType, ReturnType, ArgumentTypes...>::Invoke(function, functionArguments, currentArgumentIndex, arguments..., currentArgument);
     }
 };

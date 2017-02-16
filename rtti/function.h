@@ -2,47 +2,60 @@
 #include "rtti.h"
 #include "invoker.h"
 
-class IFunction
+template<typename ReturnType>
+struct FunctionInvoker;
+
+struct FunctionBase
 {
-public:
-
-    virtual void* Execute(const std::vector<FunctionArgument>& arguments) = 0;
-    virtual const ArgumentsContainer& GetArguments() const = 0;
-};
-
-
-template <typename ReturnType, typename... Arguments>
-class Function final : public IFunction
-{
-    using FunctionType = std::function<ReturnType(Arguments...)>;
-
-    void Caller(Arguments... arguments)
+    virtual const ArgumentsContainer& GetArguments() const
     {
-        m_function(arguments...);
+        static ArgumentsContainer nullValue;
+        return nullValue;
     }
 
+    virtual const type_info& GetReturnTypeInfo() const
+    {
+        return typeid(void);
+    }
+
+    template <typename ReturnType>
+    FunctionInvoker<ReturnType>* GetInvoker()
+    {
+        return dynamic_cast<FunctionInvoker<ReturnType>*>(this);
+    }
+};
+
+template <typename ReturnType>
+struct FunctionInvoker : public FunctionBase
+{
+public:
+    virtual ReturnType Invoke(const std::vector<FunctionArgument>& arguments) = 0;
+
+    virtual const type_info& GetReturnTypeInfo() const override final
+    {
+        return typeid(ReturnType);
+    }
+};
+
+template <typename ReturnType, typename... ArgumentTypes>
+struct Function : public FunctionInvoker<ReturnType>
+{
+    using FunctionType = std::function<ReturnType(ArgumentTypes...)>;
+
 private:
-    std::unique_ptr<ReturnType> m_lastReturnValue;
-    const FunctionType& m_function;
+    const FunctionType m_function;
     ArgumentsContainer m_argumentsNames;
 
 public:
     Function(const FunctionType& function) :
         m_function(function)
     {
-        TypeNames<Arguments...>::GetTypeName(m_argumentsNames);
+        TypeNames<ArgumentTypes...>::GetTypeName(m_argumentsNames);
     }
 
-
-    virtual void* Execute(const std::vector<FunctionArgument>& arguments) override final
+    virtual ReturnType Invoke(const std::vector<FunctionArgument>& arguments) override final
     {
-        Invoker<FunctionType, Arguments...>::Invoke(m_function, arguments, 0);
-        return GetLastReturnValue();
-    }
-
-    ReturnType* GetLastReturnValue() const
-    {
-        return m_lastReturnValue.get();
+        return Invoker<FunctionType, ReturnType, ArgumentTypes...>::Invoke(m_function, arguments, 0);
     }
 
     const ArgumentsContainer& GetArguments() const override final
@@ -50,3 +63,17 @@ public:
         return m_argumentsNames;
     }
 };
+
+template <typename ReturnType, typename... ArgumentTypes>
+struct Function <std::function<ReturnType(ArgumentTypes...)>> final : public Function <ReturnType, ArgumentTypes...>
+{
+    Function(const FunctionType& function) : Function < ReturnType, ArgumentTypes...>(function) {};
+};
+
+template <typename ReturnType, typename... ArgumentTypes>
+struct Function <ReturnType(ArgumentTypes...)> final : public Function <ReturnType, ArgumentTypes...>
+{
+    Function(const FunctionType& function) : Function < ReturnType, ArgumentTypes...>(function) {};
+};
+
+

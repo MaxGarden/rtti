@@ -5,7 +5,6 @@
 class IVariable
 {
 public:
-    virtual bool Parse(const std::string& data, void* buffer) = 0;
     virtual const std::string& GetTypeName() const = 0;
 };
 
@@ -22,6 +21,12 @@ public:
         m_typeName = TypeName<Type>();
     }
 
+    static Type Parse(const FunctionArgument& argument)
+    {
+        assert(false);
+        return Type();
+    }
+
     const std::string& GetTypeName() const override final
     {
         return m_typeName;
@@ -31,24 +36,23 @@ public:
 template <typename Type>
 struct Variable final : public VariableBase<Type>
 {
-public:
-    virtual bool Parse(const std::string& data, void* buffer) override final
-    {
-        return false;
-    }
 };
 
 template<>
 struct Variable<int> final : public VariableBase<int>
 {
-    virtual bool Parse(const std::string& data, void* buffer) override final
-    {
-        return true;
-    }
-
     static int Parse(const FunctionArgument& argument)
     {
         return atoi(argument.m_data.c_str());
+    }
+};
+
+template<>
+struct Variable<float> final : public VariableBase<float>
+{
+    static float Parse(const FunctionArgument& argument)
+    {
+        return (float)atof(argument.m_data.c_str());
     }
 };
 

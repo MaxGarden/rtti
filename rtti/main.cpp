@@ -8,18 +8,19 @@ int main()
     VariableManager manager;
     manager.RegisterVariable<int>();
 
-    static const std::function<int(int, int)> func = [](int a, int b)->int {std::cout << "invoked!\n" << a + b << std::endl; return a + b; };
-
-    IFunction* function = new Function<int, int, int>(func);
+    FunctionBase* function = new Function<int&(int, float)>([](int a, float b)->int& {std::cout << "invoked!\n" << a + b << std::endl; static int test = 111; return test; });
 
     for (auto& arg : function->GetArguments())
         std::cout << arg << std::endl;
 
-    std::vector<FunctionArgument> args;
-    args.push_back({ "100" });
-    args.push_back({ "4504" });
+    if (const auto invoker = function->GetInvoker<int&>())
+    {
+        auto returnValue = invoker->Invoke({ { "10" }, { "20" } });
 
-    function->Execute(args);
+        std::cout << std::endl << "Return: " << returnValue;
+    }
+    else
+        std::cout << "Cannot get invoker";
 
     std::cin.get();
     return 0;
