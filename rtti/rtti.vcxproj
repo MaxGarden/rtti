@@ -115,6 +115,7 @@
   <ItemGroup>
     <ClInclude Include="function.h" />
     <ClInclude Include="invoker.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="rtti.h" />
     <ClInclude Include="variable.h" />
   </ItemGroup>

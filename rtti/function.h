@@ -7,15 +7,25 @@ struct FunctionInvoker;
 
 struct FunctionBase
 {
-    virtual const ArgumentsContainer& GetArguments() const
+protected:
+    TypeInfo m_typeInfo;
+
+public:
+
+    FunctionBase(const TypeInfo& typeInfo) :
+        m_typeInfo(typeInfo)
+    {
+    }
+
+    virtual const ArgumentsContainer& GetArgumentTypeNames() const
     {
         static ArgumentsContainer nullValue;
         return nullValue;
     }
 
-    virtual const type_info& GetReturnTypeInfo() const
+    const TypeInfo& GetReturnTypeInfo() const
     {
-        return typeid(void);
+        return m_typeInfo;
     }
 
     template <typename ReturnType>
@@ -29,12 +39,12 @@ template <typename ReturnType>
 struct FunctionInvoker : public FunctionBase
 {
 public:
-    virtual ReturnType Invoke(const std::vector<FunctionArgument>& arguments) = 0;
-
-    virtual const type_info& GetReturnTypeInfo() const override final
+    FunctionInvoker() :
+        FunctionBase(TypeInfo::Create<ReturnType>())
     {
-        return typeid(ReturnType);
     }
+
+    virtual ReturnType Invoke(const std::vector<FunctionArgument>& arguments) = 0;
 };
 
 template <typename ReturnType, typename... ArgumentTypes>
@@ -58,7 +68,7 @@ public:
         return Invoker<FunctionType, ReturnType, ArgumentTypes...>::Invoke(m_function, arguments, 0);
     }
 
-    const ArgumentsContainer& GetArguments() const override final
+    const ArgumentsContainer& GetArgumentTypeNames() const override final
     {
         return m_argumentsNames;
     }
@@ -75,5 +85,3 @@ struct Function <ReturnType(ArgumentTypes...)> final : public Function <ReturnTy
 {
     Function(const FunctionType& function) : Function < ReturnType, ArgumentTypes...>(function) {};
 };
-
-

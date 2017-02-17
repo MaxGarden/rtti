@@ -1,6 +1,17 @@
 #pragma once
 #include "rtti.h"
 #include "function.h"
+#include <regex>
+
+struct ParseException
+{
+    std::string m_message;
+
+    ParseException(const std::string& typeName) :
+        m_message("(" + typeName + ") cannot parse specified input")
+    {
+    }
+};
 
 class IVariable
 {
@@ -18,13 +29,13 @@ public:
 
     VariableBase()
     {
-        m_typeName = TypeName<Type>();
+        m_typeName = TypeInfo::Create<Type>().GetName();
     }
 
     static Type Parse(const FunctionArgument& argument)
     {
         assert(false);
-        return Type();
+        throw ParseException(TypeInfo::Create<Type>().GetName());
     }
 
     const std::string& GetTypeName() const override final
@@ -34,25 +45,72 @@ public:
 };
 
 template <typename Type>
-struct Variable final : public VariableBase<Type>
+struct Variable : public VariableBase<Type>
 {
 };
 
 template<>
-struct Variable<int> final : public VariableBase<int>
+struct Variable<signed int> : public VariableBase<int>
 {
-    static int Parse(const FunctionArgument& argument)
+    static signed int Parse(const FunctionArgument& argument)
     {
+        static std::regex regex("(\\+|-)?[0-9]+");
+
+        if (!std::regex_match(argument.m_data, regex))
+            throw ParseException("signed int");
+
         return atoi(argument.m_data.c_str());
     }
 };
 
 template<>
-struct Variable<float> final : public VariableBase<float>
+struct Variable<unsigned int> : public VariableBase<int>
+{
+    static unsigned int Parse(const FunctionArgument& argument)
+    {
+        static std::regex regex("\\+?[0-9]+");
+
+        if (!std::regex_match(argument.m_data, regex))
+            throw ParseException("unsigned int");
+
+        return atoi(argument.m_data.c_str());
+    }
+};
+
+template<>
+struct Variable<float> : public VariableBase<float>
 {
     static float Parse(const FunctionArgument& argument)
     {
+        static std::regex regex("(\\+|-)?[0-9]+(\\.[0-9]+f?|\\.f?)?");
+
+        if (!std::regex_match(argument.m_data, regex))
+            throw ParseException("float");
+
         return (float)atof(argument.m_data.c_str());
+    }
+};
+
+template<>
+struct Variable<double> : public VariableBase<float>
+{
+    static double Parse(const FunctionArgument& argument)
+    {
+        static std::regex regex("(\\+|-)?[0-9]+(\\.[0-9]+|\\.)?");
+
+        if (!std::regex_match(argument.m_data, regex))
+            throw ParseException("double");
+
+        return atof(argument.m_data.c_str());
+    }
+};
+
+template<>
+struct Variable<std::string> : public VariableBase<float>
+{
+    static std::string Parse(const FunctionArgument& argument)
+    {
+        return argument.m_data;
     }
 };
 
@@ -81,7 +139,7 @@ public:
     template <typename Type>
     bool RegisterVariable()
     {
-        const auto typeName = TypeName<Type>();
+        const auto typeName = TypeInfo::Create<Type>().GetName();
 
         const auto iterator = m_variables.find(typeName);
         if (iterator != m_variables.end())
