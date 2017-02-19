@@ -6,22 +6,7 @@
 
 int main()
 {
-    int test;
-    const Object testObject = std::ref(test);
-
-    test = 12333;
-
-    try
-    {
-        std::cout << test << std::endl;
-        testObject.Cast<std::reference_wrapper<int>>().get() = 999;
-
-        std::cout << test << std::endl;
-    }
-    catch (CastException& e)
-    {
-        std::cout << e.m_message << std::endl;
-    }
+    RttiController controller;
 
     VariableManager manager;
     manager.RegisterVariable<int>();

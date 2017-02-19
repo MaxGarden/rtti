@@ -111,13 +111,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="rtti.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="function.h" />
     <ClInclude Include="invoker.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="rtti.h" />
+    <ClInclude Include="types.h" />
     <ClInclude Include="variable.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="types.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

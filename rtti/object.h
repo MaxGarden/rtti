@@ -30,6 +30,11 @@ class Object
     public:
         Type m_value;
 
+        Holder() :
+            m_typeInfo(TypeInfo::Create<Type>())
+        {
+        }
+
         Holder(const Type& value) :
             m_value(value),
             m_typeInfo(TypeInfo::Create<Type>())
@@ -91,9 +96,15 @@ public:
     }
 
     template <typename Type>
-    Type* Pointer() const
+    inline bool CanCast() const
     {
-        return TypeInfo::Create<Type>() == GetTypeInfo() ? &static_cast<Holder<std::remove_cv<Type>::type>*>(m_object.get())->m_value : nullptr;
+        return TypeInfo::Create<Type>() == GetTypeInfo();
+    }
+
+    template <typename Type>
+    inline Type* Pointer() const
+    {
+        return CanCast<Type>() ? &static_cast<Holder<std::remove_cv<Type>::type>*>(m_object.get())->m_value : nullptr;
     }
     
     template <typename Type>
@@ -110,4 +121,12 @@ public:
             throw CastException("Incompatible types");
     }
 
+    template <typename Type>
+    static Object Create()
+    {
+        Type null;
+        return Object(null);
+    }
 };
+
+#include "types.inl"

@@ -5,57 +5,22 @@
 #include <vector>
 #include <map>
 #include <assert.h>
+#include <experimental\string>
+#include "types.h"
 
-using ArgumentsContainer = std::vector<std::string>;
+class Object;
 
-struct TypeInfo
+class RttiController final
 {
-    const type_info& m_typeInfo;
+private:
+    void GatherRttiTypes();
 
-    TypeInfo() :
-        m_typeInfo(typeid(void))
-    {
-    }
+protected:
+    std::map<std::string, std::function<Object()>> m_spawningFunction;
 
-    TypeInfo(const type_info& typeInfo) :
-        m_typeInfo(typeInfo)
-    {
-    }
+public:
+    RttiController();
 
-    const std::string& GetName() const
-    {
-        static std::string staticName = m_typeInfo.name();
-        return staticName;
-    }
-
-    template <typename Type>
-    static TypeInfo Create()
-    {
-        return TypeInfo(typeid(Type));
-    }
-
-    const bool operator == (const TypeInfo& operand)
-    {
-        return m_typeInfo == operand.m_typeInfo;
-    }
-};
-
-template <typename... Arguments> struct TypeNames;
-
-template <>
-struct TypeNames <>
-{
-    static void GetTypeName(ArgumentsContainer& buffer)
-    {
-    }
-};
-
-template <typename Type, typename... Arguments>
-struct TypeNames <Type, Arguments...>
-{
-    static void GetTypeName(ArgumentsContainer& buffer)
-    {
-        buffer.push_back(TypeInfo::Create<Type>().GetName());
-        TypeNames<Arguments...>::GetTypeName(buffer);
-    }
+    bool RegisterSpawnFunction(const std::string& name, std::function<Object()> SpawnFunction);
+    bool UnregisterSpawnFunction(const std::string& name);
 };
