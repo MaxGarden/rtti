@@ -41,6 +41,9 @@
     <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="declarations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="types.inl">

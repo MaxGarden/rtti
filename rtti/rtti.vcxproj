@@ -114,6 +114,7 @@
     <ClCompile Include="rtti.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="declarations.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="invoker.h" />
     <ClInclude Include="object.h" />

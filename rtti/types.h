@@ -21,11 +21,14 @@ struct ObjectType <void>
     template <>                                                         \
     struct ObjectType<Type>                                             \
     {                                                                   \
+    friend RttiController;                                              \
+    private:                                                            \
         static Object CreateObject()                                    \
         {                                                               \
             return Object::Create<Type>();                              \
         }                                                               \
                                                                         \
+    public:                                                             \
         static const std::string& name;                                 \
     };                                                                                                                                                   
 

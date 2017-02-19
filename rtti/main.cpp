@@ -4,9 +4,37 @@
 #include "function.h"
 #include "object.h"
 
+TestClass::TestClass()
+{
+    static auto id = 0;
+
+    m_id = id++;
+    std::cout << "CREATED INSTANCE (" << m_id << ")" << std::endl;
+}
+
+TestClass::~TestClass()
+{
+    std::cout << "DESTROYED INSTANCE (" << m_id << ")" << std::endl;
+}
+
 int main()
 {
     RttiController controller;
+
+    std::string command, name, type;
+
+    while (true)
+    {
+        std::cin >> command >> name;
+
+        if (command == "c")
+        {
+            std::cin >> type;
+            std::cout << std::boolalpha << controller.CreateObject(name, type) << std::endl;
+        }
+        if (command == "d")
+            std::cout << std::boolalpha << controller.DestroyObject(name) << std::endl;
+    }
 
     VariableManager manager;
     manager.RegisterVariable<int>();

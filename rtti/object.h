@@ -121,11 +121,20 @@ public:
             throw CastException("Incompatible types");
     }
 
+private:
+template <typename Type>
+friend struct ObjectType;
+
+    template <typename Type>
+    Object(Type*)
+    {
+        m_object.reset(new Holder<Type>());
+    }
+
     template <typename Type>
     static Object Create()
     {
-        Type null;
-        return Object(null);
+        return Object((Type*)nullptr);
     }
 };
 
