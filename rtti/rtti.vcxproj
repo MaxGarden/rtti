@@ -120,7 +120,6 @@
     <ClInclude Include="object.h" />
     <ClInclude Include="rtti.h" />
     <ClInclude Include="types.h" />
-    <ClInclude Include="variable.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="types.inl" />

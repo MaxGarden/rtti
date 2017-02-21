@@ -92,3 +92,10 @@ bool RttiController::DestroyObject(const std::string& name)
 
     return true;
 }
+
+Object* RttiController::GetObject(const std::string& name)
+{
+    const auto iterator = m_objects.find(name);
+
+    return iterator == m_objects.end() ? nullptr : &iterator->second;
+}

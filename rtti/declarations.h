@@ -1,7 +1,7 @@
 #pragma once
 class TestClass
 {
-protected:
+public:
     int m_id;
 
 public:

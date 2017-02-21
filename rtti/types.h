@@ -1,7 +1,5 @@
 #pragma once
 
-using ArgumentsContainer = std::vector<std::string>;
-
 template <typename Type>
 struct ObjectType;
 
@@ -70,7 +68,7 @@ template <typename... Arguments> struct TypeNames;
 template <>
 struct TypeNames <>
 {
-    static void GetTypeName(ArgumentsContainer& buffer)
+    static void GetTypeName(std::vector<TypeInfo>& buffer)
     {
     }
 };
@@ -78,9 +76,9 @@ struct TypeNames <>
 template <typename Type, typename... Arguments>
 struct TypeNames <Type, Arguments...>
 {
-    static void GetTypeName(ArgumentsContainer& buffer)
+    static void GetTypeName(std::vector<TypeInfo>& buffer)
     {
-        buffer.push_back(ObjectType<Type>::name);
+        buffer.push_back(TypeInfo::Create<Type>());
         TypeNames<Arguments...>::GetTypeName(buffer);
     }
 };

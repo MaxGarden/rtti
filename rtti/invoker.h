@@ -1,9 +1,10 @@
 #pragma once
 #include "rtti.h"
+#include "object.h"
 
 struct FunctionArgument
 {
-    std::string m_data;
+    Object& m_value;
 };
 
 struct InvokeException
@@ -38,7 +39,6 @@ struct Invoker <FunctionType, ReturnType, Type, ArgumentTypes...>
         if (currentArgumentIndex >= functionArguments.size())
             throw InvokeException("Too few parameters");
 
-        const auto currentArgument = Variable<Type>::Parse(functionArguments[currentArgumentIndex++]);
-        return Invoker<FunctionType, ReturnType, ArgumentTypes...>::Invoke(function, functionArguments, currentArgumentIndex, arguments..., currentArgument);
+        return Invoker<FunctionType, ReturnType, ArgumentTypes...>::Invoke<InvokeArguments..., Type>(function, functionArguments, currentArgumentIndex, arguments..., functionArguments[currentArgumentIndex++].m_value.Cast<Type>());
     }
 };

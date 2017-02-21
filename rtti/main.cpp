@@ -1,6 +1,5 @@
 #include <iostream>
 #include "rtti.h"
-#include "variable.h"
 #include "function.h"
 #include "object.h"
 
@@ -21,58 +20,18 @@ int main()
 {
     RttiController controller;
 
-    std::string command, name, type;
+    controller.CreateObject("one", "TestClass");
+    controller.CreateObject("two", "TestClass");
+    controller.CreateObject("three", "TestClass");
 
-    while (true)
-    {
-        std::cin >> command >> name;
+    IFunction* function = new Function<void(TestClass&, TestClass&, TestClass&)>([](TestClass& one, TestClass& two, TestClass& three) {std::cout << one.m_id << two.m_id << three.m_id; });
 
-        if (command == "c")
-        {
-            std::cin >> type;
-            std::cout << std::boolalpha << controller.CreateObject(name, type) << std::endl;
-        }
-        if (command == "d")
-            std::cout << std::boolalpha << controller.DestroyObject(name) << std::endl;
-    }
+    std::vector<FunctionArgument> x = { { *controller.GetObject("one") }, { *controller.GetObject("two") }, { *controller.GetObject("three") } };
 
-    VariableManager manager;
-    manager.RegisterVariable<int>();
+    function->Execute(x);
 
-    FunctionBase* function = new Function<int&(int, float, const std::string& text)>([](int a, float b, const std::string& text)->int& {std::cout << "invoked!\n" << text << std::endl << a + b << std::endl; static int test = a; return test; });
-
-    for (auto& arg : function->GetArgumentTypeNames())
-        std::cout << arg << " ";
-
-    std::cout << std::endl << std::endl;
-
-    std::vector<FunctionArgument> arguments;
-    arguments.resize(function->GetArgumentTypeNames().size());
-
-    while (true)
-    {
-        for (auto i = 0u; i < arguments.size(); ++i)
-        {
-            std::cout << "(" << function->GetArgumentTypeNames()[i] << "): ";
-            std::cin >> arguments[i].m_data;
-        }
-
-        try
-        {
-            if (const auto invoker = function->GetInvoker<int&>())
-                std::cout << std::endl << "Return: " << invoker->Invoke(arguments) << std::endl;
-            else
-                std::cout << "Cannot get invoker" << std::endl;
-        }
-        catch (ParseException& error)
-        {
-            std::cout << error.m_message << std::endl;
-        }
-        catch (InvokeException& error)
-        {
-            std::cout << error.m_message << std::endl;
-        }
-    }
+    controller.DestroyObject("two");
+    
     std::cin.get();
     return 0;
 }

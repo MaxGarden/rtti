@@ -65,6 +65,7 @@ public:
 
     Object()
     {
+        m_object.release();
     }
 
     template <typename Type>

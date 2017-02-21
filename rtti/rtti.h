@@ -28,4 +28,6 @@ public:
     bool CreateObject(const std::string& name, const std::string& typeName);
     bool CreateObject(const std::string& name, const TypeInfo& typeInfo);
     bool DestroyObject(const std::string& name);
+
+    Object* GetObject(const std::string& name);
 };
