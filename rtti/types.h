@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 
 template <typename Type>
 struct ObjectType;
@@ -12,35 +13,68 @@ struct ObjectType <const Type> : ObjectType<Type> {};
 template <>
 struct ObjectType <void>
 {
-    static const std::string& name;
+    static const std::string& GetName()
+    {
+        static const std::string& name = "void";
+        return name;
+    }
+    static const bool IsClass()
+    {
+        return false;
+    }
 };
 
-#define REGISTER_RTTI_TYPE_IMPLEMENTATION(Type)                         \
-    template <>                                                         \
-    struct ObjectType<Type>                                             \
-    {                                                                   \
-    friend RttiController;                                              \
-    private:                                                            \
-        static Object CreateObject()                                    \
-        {                                                               \
-            return Object::Create<Type>();                              \
-        }                                                               \
-                                                                        \
-    public:                                                             \
-        static const std::string& name;                                 \
+#define REGISTER_RTTI_TYPE_IMPLEMENTATION(Type, isClass, ParentType)                                \
+    template <>                                                                                     \
+    struct ObjectType<Type>                                                                         \
+    {                                                                                               \
+    friend RttiController;                                                                          \
+    private:                                                                                        \
+        static Object CreateObject()                                                                \
+        {                                                                                           \
+            return Object::Create<Type>();                                                          \
+        }                                                                                           \
+                                                                                                    \
+    public:                                                                                         \
+        static const bool IsClass()                                                                 \
+        {                                                                                           \
+            return isClass;                                                                         \
+        }                                                                                           \
+                                                                                                    \
+        static const std::string& GetName()                                                         \
+        {                                                                                           \
+            static const std::string name = []()                                                    \
+            {                                                                                       \
+                std::string result = #Type;                                                         \
+                result.erase(std::remove_if(result.begin(), result.end(), isspace), result.end());  \
+                return result;                                                                      \
+            }();                                                                                    \
+            return name;                                                                            \
+        }                                                                                           \
+                                                                                                    \
+        static const ObjectType<ParentType> GetParentType()                                         \
+        {                                                                                           \
+            return ObjectType<ParentType>();                                                        \
+        }                                                                                           \
     };                                                                                                                                                   
 
-#define REGISTER_RTTI_TYPE(Type)                                        \
-    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type)                             \
-    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type*)                            \
+#define REGISTER_RTTI_TYPE(Type)                                                                    \
+    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type, false, void)                                            \
+    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type*, false, void)               
+
+#define REGISTER_RTTI_TYPE_CLASS(Type, ParentType)                                                  \
+    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type, true, ParentType)                                       \
+    REGISTER_RTTI_TYPE_IMPLEMENTATION(Type*, true, ParentType)          
 
 class TypeInfo final
 {
 private:
     const std::string m_name;
+    const bool m_isClass;
 
-    TypeInfo(const std::string& name) :
-        m_name(name)
+    TypeInfo(const std::string& name, const bool isClass) :
+        m_name(name),
+        m_isClass(isClass)
     {
     }
 
@@ -59,7 +93,7 @@ public:
     template <typename Type>
     static TypeInfo Create()
     {
-        return TypeInfo(ObjectType<Type>::name);
+        return TypeInfo(ObjectType<Type>::GetName(), ObjectType<Type>::IsClass());
     }
 };
 
